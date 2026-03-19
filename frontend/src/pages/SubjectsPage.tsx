@@ -192,8 +192,11 @@ export default function SubjectsPage() {
   };
 
   const learned = tasks.filter(t => t.task_type === "learning" && t.completed);
-  const completedRevisions = tasks.filter(t => t.task_type !== "learning" && t.completed);
-  const pending = tasks.filter(t => !t.completed);
+  const completedRev1 = tasks.filter(t => t.task_type === "revision_1" && t.completed);
+  const completedRev2 = tasks.filter(t => t.task_type === "revision_2" && t.completed);
+  
+  const pendingRev1 = tasks.filter(t => t.task_type === "revision_1" && !t.completed);
+  const pendingRev2 = tasks.filter(t => t.task_type === "revision_2" && !t.completed);
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -431,7 +434,7 @@ export default function SubjectsPage() {
       {loading ? (
         <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
@@ -443,21 +446,35 @@ export default function SubjectsPage() {
             <CardContent className="space-y-2">
               {learned.length === 0 ? (
                 <p className="text-xs text-muted-foreground py-2">No concepts learned yet.</p>
-              ) : learned.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {learned.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate disableStrikeThrough />)}
+                </div>
+              )}
             </CardContent>
           </Card>
 
-          {completedRevisions.length > 0 && (
-            <Card className="md:col-span-2">
+          {(completedRev1.length > 0 || completedRev2.length > 0) && (
+            <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <BookOpen className="h-4 w-4 text-green-600" />
                   Completed Revisions
-                  <span className="text-xs font-mono text-muted-foreground ml-auto">({completedRevisions.length})</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                {completedRevisions.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 1 ({completedRev1.length})</h3>
+                  {completedRev1.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-2">No completed Revision 1 yet.</p>
+                  ) : completedRev1.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 2 ({completedRev2.length})</h3>
+                  {completedRev2.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-2">No completed Revision 2 yet.</p>
+                  ) : completedRev2.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -467,13 +484,21 @@ export default function SubjectsPage() {
               <CardTitle className="text-sm flex items-center gap-2">
                 <Clock className="h-4 w-4 text-destructive" />
                 Pending Revisions
-                <span className="text-xs font-mono text-muted-foreground ml-auto">({pending.length})</span>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {pending.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">All caught up! 🎉</p>
-              ) : pending.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 1 ({pendingRev1.length})</h3>
+                {pendingRev1.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">All caught up! 🎉</p>
+                ) : pendingRev1.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 2 ({pendingRev2.length})</h3>
+                {pendingRev2.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">All caught up! 🎉</p>
+                ) : pendingRev2.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+              </div>
             </CardContent>
           </Card>
         </div>

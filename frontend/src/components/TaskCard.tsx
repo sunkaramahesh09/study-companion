@@ -10,6 +10,7 @@ interface TaskCardProps {
   onToggle: (taskId: string, completed: boolean) => void;
   onDelete?: (taskId: string) => void;
   showDate?: boolean;
+  disableStrikeThrough?: boolean;
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -24,14 +25,14 @@ const DIFFICULTY_COLORS: Record<string, string> = {
   hard: "text-destructive",
 };
 
-export default function TaskCard({ task, onToggle, onDelete, showDate }: TaskCardProps) {
+export default function TaskCard({ task, onToggle, onDelete, showDate, disableStrikeThrough }: TaskCardProps) {
   const topic = task.topic;
 
   return (
     <div
       className={cn(
         "flex items-center gap-3 p-3 rounded-md border border-border bg-card transition-all hover:bg-accent/50",
-        task.completed && "opacity-60"
+        task.completed && !disableStrikeThrough && "opacity-60"
       )}
     >
       <Checkbox
@@ -41,7 +42,7 @@ export default function TaskCard({ task, onToggle, onDelete, showDate }: TaskCar
       />
 
       <div className="flex-1 min-w-0">
-        <p className={cn("text-sm font-medium text-foreground truncate", task.completed && "line-through")}>
+        <p className={cn("text-sm font-medium text-foreground truncate", task.completed && !disableStrikeThrough && "line-through")}>
           {topic?.title || "Unknown Topic"}
         </p>
         {showDate && (

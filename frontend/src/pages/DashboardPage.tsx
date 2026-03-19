@@ -133,7 +133,11 @@ export default function DashboardPage() {
             {todayTasks.length === 0 ? (
               <p className="text-xs text-muted-foreground px-1 py-4">No tasks for today. Add a topic!</p>
             ) : (
-              todayTasks.map(task => <TaskCard key={task.id} task={task} onToggle={handleToggle} onDelete={handleDelete} />)
+              todayTasks.map(task => (
+                <div key={task.id} className="border-l-2 border-primary pl-0 rounded-r-md">
+                  <TaskCard task={task} onToggle={handleToggle} onDelete={handleDelete} />
+                </div>
+              ))
             )}
           </div>
         </div>
