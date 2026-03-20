@@ -5,6 +5,7 @@ import {
   addTopic, addPastEntry, getUserSubjects, deleteSubject, renameSubject, TaskRow
 } from "@/lib/api";
 import TaskCard from "@/components/TaskCard";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -463,7 +464,7 @@ export default function SubjectsPage() {
 
       {/* Content */}
       {loading ? (
-        <p className="text-sm text-muted-foreground text-center py-8">Loading...</p>
+        <LoadingSpinner />
       ) : (
         <div className="grid grid-cols-1 gap-6">
           <Card>

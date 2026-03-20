@@ -1,5 +1,6 @@
 import { TaskRow } from "@/lib/api";
 import { Checkbox } from "@/components/ui/checkbox";
+import confetti from "canvas-confetti";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -37,7 +38,16 @@ export default function TaskCard({ task, onToggle, onDelete, showDate, disableSt
     >
       <Checkbox
         checked={task.completed}
-        onCheckedChange={(checked) => onToggle(task.id, !!checked)}
+        onCheckedChange={(checked) => {
+          onToggle(task.id, !!checked);
+          if (checked) {
+            confetti({
+              particleCount: 150,
+              spread: 70,
+              origin: { y: 0.6 }
+            });
+          }
+        }}
         className="data-[state=checked]:bg-success data-[state=checked]:border-success"
       />
 

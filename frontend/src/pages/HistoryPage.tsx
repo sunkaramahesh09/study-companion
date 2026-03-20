@@ -4,6 +4,7 @@ import { getCompletedTasks, TaskRow } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 import TaskCard from "@/components/TaskCard";
 import { toast } from "sonner";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function HistoryPage() {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export default function HistoryPage() {
     getCompletedTasks(user.id).then(setTasks).catch(() => toast.error("Failed to load")).finally(() => setLoading(false));
   }, [user]);
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading...</div>;
+  if (loading) return <LoadingSpinner />;
 
   // Group by date
   const grouped: Record<string, TaskRow[]> = {};

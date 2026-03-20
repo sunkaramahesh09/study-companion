@@ -3,6 +3,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getAllTasks, TaskRow } from "@/lib/api";
 import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, parseISO } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { toast } from "sonner";
 
 const CHART_COLORS = ["hsl(142,71%,45%)", "hsl(142,71%,35%)", "hsl(152,60%,52%)", "hsl(158,64%,40%)", "hsl(138,50%,55%)", "hsl(165,60%,42%)"];
@@ -17,7 +18,7 @@ export default function AnalyticsPage() {
     getAllTasks(user.id).then(setTasks).catch(() => toast.error("Failed to load")).finally(() => setLoading(false));
   }, [user]);
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading...</div>;
+  if (loading) return <LoadingSpinner />;
 
   const completedTasks = tasks.filter(t => t.completed);
 

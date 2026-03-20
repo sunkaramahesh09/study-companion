@@ -4,6 +4,7 @@ import { getTasksForDateRange, getOverdueTasks, toggleTaskComplete, getStreak, u
 import { format, addDays } from "date-fns";
 import TaskCard from "@/components/TaskCard";
 import AddTopicForm from "@/components/AddTopicForm";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { Flame, Target, AlertTriangle, Calendar, ChevronRight } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
@@ -70,7 +71,7 @@ export default function DashboardPage() {
   const progressPercent = todayTotal > 0 ? (todayCompleted / todayTotal) * 100 : 0;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64 text-muted-foreground text-sm">Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   return (

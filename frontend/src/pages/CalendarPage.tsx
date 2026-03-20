@@ -4,6 +4,7 @@ import { getCompletedDates, getTasksForDate, toggleTaskComplete, updateStreak, r
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TaskCard from "@/components/TaskCard";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { format } from "date-fns";
 import { CalendarDays } from "lucide-react";
 import { toast } from "sonner";
@@ -96,7 +97,7 @@ export default function CalendarPage() {
           </CardHeader>
           <CardContent className="space-y-2">
             {loading ? (
-              <p className="text-xs text-muted-foreground py-4">Loading...</p>
+              <LoadingSpinner className="min-h-[200px]" />
             ) : dayTasks.length === 0 ? (
               <p className="text-xs text-muted-foreground py-4">No tasks for this date.</p>
             ) : (
