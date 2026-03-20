@@ -44,6 +44,13 @@ export default function DashboardPage() {
   useEffect(() => { fetchData(); }, [fetchData]);
 
   const handleToggle = async (taskId: string, completed: boolean) => {
+    const updateTasks = (prev: TaskRow[]) => 
+      prev.map(t => t.id === taskId ? { ...t, completed } as TaskRow : t);
+    
+    setTodayTasks(updateTasks);
+    setOverdueTasks(updateTasks);
+    setUpcomingTasks(updateTasks);
+
     try {
       await toggleTaskComplete(taskId, completed);
       if (user) {
@@ -53,6 +60,7 @@ export default function DashboardPage() {
       fetchData();
     } catch (err: any) {
       toast.error("Failed to update task");
+      fetchData();
     }
   };
 

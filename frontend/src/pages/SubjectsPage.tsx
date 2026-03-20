@@ -83,32 +83,35 @@ export default function SubjectsPage() {
     }
   }, [user, deletedSubjects]);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (showLoader = false) => {
     if (!user) return;
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const data = await getTasksBySubject(user.id, selectedSubject);
       setTasks(data);
     } catch {
       toast.error("Failed to load subject data");
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   }, [user, selectedSubject]);
 
   useEffect(() => { fetchSubjects(); }, [fetchSubjects]);
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => { fetchData(true); }, [fetchData]);
 
   const handleToggle = async (taskId: string, completed: boolean) => {
+    setTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed } as TaskRow : t));
+    
     try {
       await toggleTaskComplete(taskId, completed);
       if (user) {
         if (completed) await updateStreak(user.id);
         else await revertStreak(user.id);
       }
-      fetchData();
+      fetchData(false);
     } catch {
       toast.error("Failed to update task");
+      fetchData(false);
     }
   };
 

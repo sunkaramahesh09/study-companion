@@ -26,34 +26,37 @@ export default function CalendarPage() {
     }
   }, [user]);
 
-  const fetchDayTasks = useCallback(async (date: Date) => {
+  const fetchDayTasks = useCallback(async (date: Date, showLoader = false) => {
     if (!user) return;
     try {
-      setLoading(true);
+      if (showLoader) setLoading(true);
       const dateStr = format(date, "yyyy-MM-dd");
       const data = await getTasksForDate(user.id, dateStr);
       setDayTasks(data);
     } catch {
       toast.error("Failed to load tasks");
     } finally {
-      setLoading(false);
+      if (showLoader) setLoading(false);
     }
   }, [user]);
 
   useEffect(() => { fetchCompletedDates(); }, [fetchCompletedDates]);
-  useEffect(() => { fetchDayTasks(selectedDate); }, [selectedDate, fetchDayTasks]);
+  useEffect(() => { fetchDayTasks(selectedDate, true); }, [selectedDate, fetchDayTasks]);
 
   const handleToggle = async (taskId: string, completed: boolean) => {
+    setDayTasks(prev => prev.map(t => t.id === taskId ? { ...t, completed } as TaskRow : t));
+    
     try {
       await toggleTaskComplete(taskId, completed);
       if (user) {
         if (completed) await updateStreak(user.id);
         else await revertStreak(user.id);
       }
-      fetchDayTasks(selectedDate);
+      fetchDayTasks(selectedDate, false);
       fetchCompletedDates();
     } catch {
       toast.error("Failed to update task");
+      fetchDayTasks(selectedDate, false);
     }
   };
 
@@ -61,7 +64,7 @@ export default function CalendarPage() {
     try {
       await deleteTopic(topicId);
       toast.success("Topic deleted");
-      fetchDayTasks(selectedDate);
+      fetchDayTasks(selectedDate, false);
       fetchCompletedDates();
     } catch {
       toast.error("Failed to delete topic");
