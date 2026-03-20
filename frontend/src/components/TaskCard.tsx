@@ -52,7 +52,7 @@ export default function TaskCard({ task, onToggle, onDelete, showDate, disableSt
       />
 
       <div className="flex-1 min-w-0">
-        <p className={cn("text-sm font-medium text-foreground truncate", task.completed && !disableStrikeThrough && "line-through")}>
+        <p className={cn("text-sm font-medium text-foreground", task.completed && !disableStrikeThrough && "line-through")}>
           {topic?.title || "Unknown Topic"}
         </p>
         {showDate && (
