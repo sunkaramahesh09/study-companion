@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
-  getTasksBySubject, toggleTaskComplete, updateStreak, revertStreak, deleteTask,
+  getTasksBySubject, toggleTaskComplete, updateStreak, revertStreak, deleteTopic,
   addTopic, addPastEntry, getUserSubjects, deleteSubject, renameSubject, TaskRow
 } from "@/lib/api";
 import TaskCard from "@/components/TaskCard";
@@ -23,10 +23,27 @@ import type { Database } from "@/integrations/supabase/types";
 type DifficultyLevel = Database["public"]["Enums"]["difficulty_level"];
 
 const DEFAULT_SUBJECTS = ["DSA", "DBMS", "NPTEL", "OS", "CN", "OOP"];
+const LOCAL_STORAGE_DELETED_SUBJECTS_KEY = "deletedSubjects";
 
 export default function SubjectsPage() {
   const { user } = useAuth();
-  const [subjects, setSubjects] = useState<string[]>(DEFAULT_SUBJECTS);
+  const [deletedSubjects, setDeletedSubjects] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(LOCAL_STORAGE_DELETED_SUBJECTS_KEY) || "[]");
+    } catch {
+      return [];
+    }
+  });
+
+  const [subjects, setSubjects] = useState<string[]>(() => {
+    try {
+      const storedDeleted = JSON.parse(localStorage.getItem(LOCAL_STORAGE_DELETED_SUBJECTS_KEY) || "[]");
+      return DEFAULT_SUBJECTS.filter(s => !storedDeleted.includes(s));
+    } catch {
+      return DEFAULT_SUBJECTS;
+    }
+  });
+  
   const [selectedSubject, setSelectedSubject] = useState("DSA");
   const [tasks, setTasks] = useState<TaskRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,12 +74,13 @@ export default function SubjectsPage() {
     if (!user) return;
     try {
       const dbSubjects = await getUserSubjects(user.id);
-      const merged = Array.from(new Set([...DEFAULT_SUBJECTS, ...dbSubjects]));
+      const merged = Array.from(new Set([...DEFAULT_SUBJECTS, ...dbSubjects]))
+        .filter(s => !deletedSubjects.includes(s));
       setSubjects(merged);
     } catch {
       // silent
     }
-  }, [user]);
+  }, [user, deletedSubjects]);
 
   const fetchData = useCallback(async () => {
     if (!user) return;
@@ -93,13 +111,13 @@ export default function SubjectsPage() {
     }
   };
 
-  const handleDelete = async (taskId: string) => {
+  const handleDelete = async (topicId: string) => {
     try {
-      await deleteTask(taskId);
-      toast.success("Task deleted");
+      await deleteTopic(topicId);
+      toast.success("Topic deleted");
       fetchData();
     } catch {
-      toast.error("Failed to delete task");
+      toast.error("Failed to delete topic");
     }
   };
 
@@ -179,9 +197,22 @@ export default function SubjectsPage() {
     if (!user || !deleteConfirmSubject) return;
     try {
       await deleteSubject(user.id, deleteConfirmSubject);
+      
+      if (DEFAULT_SUBJECTS.includes(deleteConfirmSubject)) {
+        const newDeleted = [...deletedSubjects, deleteConfirmSubject];
+        setDeletedSubjects(newDeleted);
+        localStorage.setItem(LOCAL_STORAGE_DELETED_SUBJECTS_KEY, JSON.stringify(newDeleted));
+      }
+
       setSubjects(prev => prev.filter(s => s !== deleteConfirmSubject));
       if (selectedSubject === deleteConfirmSubject) {
-        setSelectedSubject(subjects.find(s => s !== deleteConfirmSubject) || "DSA");
+        const nextSubject = subjects.find(s => s !== deleteConfirmSubject);
+        if (nextSubject) {
+          setSelectedSubject(nextSubject);
+        } else {
+          const fallback = DEFAULT_SUBJECTS.find(s => !deletedSubjects.includes(s) && s !== deleteConfirmSubject);
+          if (fallback) setSelectedSubject(fallback);
+        }
       }
       setDeleteConfirmSubject(null);
       toast.success("Subject and all related data deleted");

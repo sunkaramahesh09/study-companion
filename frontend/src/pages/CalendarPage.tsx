@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getCompletedDates, getTasksForDate, toggleTaskComplete, updateStreak, revertStreak, deleteTask, TaskRow } from "@/lib/api";
+import { getCompletedDates, getTasksForDate, toggleTaskComplete, updateStreak, revertStreak, deleteTopic, TaskRow } from "@/lib/api";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import TaskCard from "@/components/TaskCard";
@@ -56,14 +56,14 @@ export default function CalendarPage() {
     }
   };
 
-  const handleDelete = async (taskId: string) => {
+  const handleDelete = async (topicId: string) => {
     try {
-      await deleteTask(taskId);
-      toast.success("Task deleted");
+      await deleteTopic(topicId);
+      toast.success("Topic deleted");
       fetchDayTasks(selectedDate);
       fetchCompletedDates();
     } catch {
-      toast.error("Failed to delete task");
+      toast.error("Failed to delete topic");
     }
   };
 

@@ -65,7 +65,7 @@ export default function TaskCard({ task, onToggle, onDelete, showDate, disableSt
             variant="ghost"
             size="icon"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
-            onClick={(e) => { e.stopPropagation(); onDelete(task.id); }}
+            onClick={(e) => { e.stopPropagation(); onDelete(task.topic_id); }}
           >
             <Trash2 className="h-3.5 w-3.5" />
           </Button>

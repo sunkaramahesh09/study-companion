@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getTasksForDateRange, getOverdueTasks, toggleTaskComplete, getStreak, updateStreak, revertStreak, deleteTask, TaskRow } from "@/lib/api";
+import { getTasksForDateRange, getOverdueTasks, toggleTaskComplete, getStreak, updateStreak, revertStreak, deleteTopic, TaskRow } from "@/lib/api";
 import { format, addDays } from "date-fns";
 import TaskCard from "@/components/TaskCard";
 import AddTopicForm from "@/components/AddTopicForm";
@@ -55,13 +55,13 @@ export default function DashboardPage() {
     }
   };
 
-  const handleDelete = async (taskId: string) => {
+  const handleDelete = async (topicId: string) => {
     try {
-      await deleteTask(taskId);
-      toast.success("Task deleted");
+      await deleteTopic(topicId);
+      toast.success("Topic deleted");
       fetchData();
     } catch {
-      toast.error("Failed to delete task");
+      toast.error("Failed to delete topic");
     }
   };
 
