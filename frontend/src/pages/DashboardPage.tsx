@@ -1,13 +1,24 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { getTasksForDateRange, getOverdueTasks, toggleTaskComplete, getStreak, updateStreak, revertStreak, deleteTopic, TaskRow } from "@/lib/api";
+import { getTasksForDateRange, getOverdueTasks, toggleTaskComplete, getStreak, updateStreak, revertStreak, deleteTopic, addDailyTask, TaskRow } from "@/lib/api";
 import { format, addDays } from "date-fns";
 import TaskCard from "@/components/TaskCard";
 import AddTopicForm from "@/components/AddTopicForm";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { Flame, Target, AlertTriangle, Calendar, ChevronRight } from "lucide-react";
+import { Flame, Target, AlertTriangle, Calendar, ChevronRight, Plus, Sparkles } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+
+const DAILY_PRESETS = [
+  { label: "💧 Water", title: "Drink Water" },
+  { label: "🏋️ Gym", title: "Do Gym" },
+  { label: "📚 Read", title: "Read a Book" },
+  { label: "🧘 Meditate", title: "Meditate" },
+  { label: "🚶 Walk", title: "Go for a Walk" },
+  { label: "🛌 Sleep Early", title: "Sleep Early" },
+];
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -16,6 +27,9 @@ export default function DashboardPage() {
   const [upcomingTasks, setUpcomingTasks] = useState<TaskRow[]>([]);
   const [streak, setStreak] = useState({ current: 0, longest: 0 });
   const [loading, setLoading] = useState(true);
+  const [quickTaskTitle, setQuickTaskTitle] = useState("");
+  const [isAddingQuick, setIsAddingQuick] = useState(false);
+  const [addingPreset, setAddingPreset] = useState<string | null>(null);
 
   const today = format(new Date(), "yyyy-MM-dd");
   const threeDaysLater = format(addDays(new Date(), 3), "yyyy-MM-dd");
@@ -42,6 +56,33 @@ export default function DashboardPage() {
   }, [user, today, tomorrow, threeDaysLater]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleAddDailyTask = async (title: string) => {
+    if (!title.trim() || !user) return;
+    setIsAddingQuick(true);
+    try {
+      await addDailyTask(user.id, title.trim());
+      setQuickTaskTitle("");
+      toast.success(`"${title.trim()}" added to today!`);
+      fetchData();
+    } catch {
+      toast.error("Failed to add daily task");
+    } finally {
+      setIsAddingQuick(false);
+      setAddingPreset(null);
+    }
+  };
+
+  const handlePresetClick = async (preset: { label: string; title: string }) => {
+    if (!user || addingPreset) return;
+    setAddingPreset(preset.label);
+    await handleAddDailyTask(preset.title);
+  };
+
+  const handleQuickAdd = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await handleAddDailyTask(quickTaskTitle);
+  };
 
   const handleToggle = async (taskId: string, completed: boolean) => {
     const updateTasks = (prev: TaskRow[]) => 
@@ -74,6 +115,8 @@ export default function DashboardPage() {
     }
   };
 
+  const studyTasks = todayTasks.filter(t => t.task_type !== "daily_task");
+  const dailyHabitTasks = todayTasks.filter(t => t.task_type === "daily_task");
   const todayCompleted = todayTasks.filter(t => t.completed).length;
   const todayTotal = todayTasks.length;
   const progressPercent = todayTotal > 0 ? (todayCompleted / todayTotal) * 100 : 0;
@@ -106,6 +149,52 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Daily Habits */}
+      <div className="border border-teal-500/30 rounded-lg p-4 bg-teal-500/5 space-y-3">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-teal-500" />
+          <h2 className="text-sm font-semibold text-foreground">Daily Habits</h2>
+          <span className="text-xs text-muted-foreground ml-1">— no revisions needed</span>
+        </div>
+
+        {/* Preset buttons */}
+        <div className="flex flex-wrap gap-2">
+          {DAILY_PRESETS.map(preset => (
+            <button
+              key={preset.label}
+              onClick={() => handlePresetClick(preset)}
+              disabled={!!addingPreset || isAddingQuick}
+              className="px-3 py-1.5 rounded-full text-xs font-medium border border-teal-500/30 bg-teal-500/10 text-teal-700 dark:text-teal-300 hover:bg-teal-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {addingPreset === preset.label ? "Adding…" : preset.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Custom daily task input */}
+        <form onSubmit={handleQuickAdd} className="flex gap-2">
+          <Input
+            value={quickTaskTitle}
+            onChange={e => setQuickTaskTitle(e.target.value)}
+            placeholder="Or type a custom habit for today…"
+            className="h-9 text-sm"
+            disabled={isAddingQuick}
+          />
+          <Button type="submit" size="sm" className="h-9 px-3" disabled={!quickTaskTitle.trim() || isAddingQuick}>
+            <Plus className="h-4 w-4" />
+          </Button>
+        </form>
+
+        {/* Today's daily habit tasks */}
+        {dailyHabitTasks.length > 0 && (
+          <div className="space-y-1 pt-1 border-t border-teal-500/20">
+            {dailyHabitTasks.map(task => (
+              <TaskCard key={task.id} task={task} onToggle={handleToggle} onDelete={handleDelete} />
+            ))}
+          </div>
+        )}
+      </div>
+
       {/* Add Topic */}
       <AddTopicForm onAdded={fetchData} />
 
@@ -136,13 +225,13 @@ export default function DashboardPage() {
           <div className="flex items-center gap-2 px-1">
             <Calendar className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-semibold text-foreground">Today</h2>
-            <span className="text-xs font-mono text-muted-foreground">({todayTasks.length})</span>
+            <span className="text-xs font-mono text-muted-foreground">({studyTasks.length})</span>
           </div>
           <div className="space-y-2">
-            {todayTasks.length === 0 ? (
-              <p className="text-xs text-muted-foreground px-1 py-4">No tasks for today. Add a topic!</p>
+            {studyTasks.length === 0 ? (
+              <p className="text-xs text-muted-foreground px-1 py-4">No study tasks for today. Add a topic!</p>
             ) : (
-              todayTasks.map(task => (
+              studyTasks.map(task => (
                 <div key={task.id} className="border-l-2 border-primary pl-0 rounded-r-md">
                   <TaskCard task={task} onToggle={handleToggle} onDelete={handleDelete} />
                 </div>

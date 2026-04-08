@@ -121,7 +121,7 @@ export type Database = {
     }
     Enums: {
       difficulty_level: "easy" | "medium" | "hard"
-      task_type: "learning" | "revision_1" | "revision_2"
+      task_type: "learning" | "revision_1" | "revision_2" | "revision_3" | "daily_task"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -250,7 +250,7 @@ export const Constants = {
   public: {
     Enums: {
       difficulty_level: ["easy", "medium", "hard"],
-      task_type: ["learning", "revision_1", "revision_2"],
+      task_type: ["learning", "revision_1", "revision_2", "revision_3", "daily_task"],
     },
   },
 } as const

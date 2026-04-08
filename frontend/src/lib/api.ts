@@ -30,11 +30,12 @@ export interface TaskRow {
   };
 }
 
-// Revision schedule: Day 0, Day 7, Day 17
+// Revision schedule: Day 0, Day 7, Day 10, Day 30
 const REVISION_SCHEDULE: { type: TaskType; daysOffset: number }[] = [
   { type: "learning", daysOffset: 0 },
   { type: "revision_1", daysOffset: 7 },
-  { type: "revision_2", daysOffset: 17 },
+  { type: "revision_2", daysOffset: 10 },
+  { type: "revision_3", daysOffset: 30 },
 ];
 
 export async function addTopic(
@@ -77,7 +78,9 @@ export async function addPastEntry(
   rev1Completed: boolean,
   rev1Date: string | null,
   rev2Completed: boolean,
-  rev2Date: string | null
+  rev2Date: string | null,
+  rev3Completed: boolean = false,
+  rev3Date: string | null = null
 ) {
   const { data: topic, error: topicError } = await supabase
     .from("topics")
@@ -89,7 +92,8 @@ export async function addPastEntry(
 
   const learningDate = format(date, "yyyy-MM-dd");
   const rev1DueDate = format(addDays(date, 7), "yyyy-MM-dd");
-  const rev2DueDate = format(addDays(date, 17), "yyyy-MM-dd");
+  const rev2DueDate = format(addDays(date, 10), "yyyy-MM-dd");
+  const rev3DueDate = format(addDays(date, 30), "yyyy-MM-dd");
 
   const tasks = [
     {
@@ -116,11 +120,44 @@ export async function addPastEntry(
       completed: rev2Completed,
       completed_at: rev2Completed && rev2Date ? new Date(rev2Date + "T12:00:00").toISOString() : null,
     },
+    {
+      user_id: userId,
+      topic_id: topic.id,
+      task_type: "revision_3" as TaskType,
+      due_date: rev3DueDate,
+      completed: rev3Completed,
+      completed_at: rev3Completed && rev3Date ? new Date(rev3Date + "T12:00:00").toISOString() : null,
+    },
   ];
 
   const { error: tasksError } = await supabase.from("tasks").insert(tasks);
   if (tasksError) throw tasksError;
 
+  return topic;
+}
+
+// Add a one-time daily task (no revision schedule)
+export async function addDailyTask(
+  userId: string,
+  title: string
+) {
+  const { data: topic, error: topicError } = await supabase
+    .from("topics")
+    .insert({ user_id: userId, title, subject: "Daily Task", difficulty: "medium" as DifficultyLevel, notes: null })
+    .select()
+    .single();
+
+  if (topicError || !topic) throw topicError;
+
+  const today = format(new Date(), "yyyy-MM-dd");
+  const { error: taskError } = await supabase.from("tasks").insert({
+    user_id: userId,
+    topic_id: topic.id,
+    task_type: "daily_task" as TaskType,
+    due_date: today,
+  });
+
+  if (taskError) throw taskError;
   return topic;
 }
 

@@ -63,6 +63,8 @@ export default function SubjectsPage() {
   const [pastRev1Date, setPastRev1Date] = useState("");
   const [pastRev2Done, setPastRev2Done] = useState(false);
   const [pastRev2Date, setPastRev2Date] = useState("");
+  const [pastRev3Done, setPastRev3Done] = useState(false);
+  const [pastRev3Date, setPastRev3Date] = useState("");
 
   // Subject management
   const [showAddSubject, setShowAddSubject] = useState(false);
@@ -147,7 +149,8 @@ export default function SubjectsPage() {
       await addPastEntry(
         user.id, pastTitle, selectedSubject, pastDifficulty, null, date,
         pastRev1Done, pastRev1Date || null,
-        pastRev2Done, pastRev2Date || null
+        pastRev2Done, pastRev2Date || null,
+        pastRev3Done, pastRev3Date || null
       );
       toast.success("Past entry added with revision schedule!");
       setPastTitle("");
@@ -156,6 +159,8 @@ export default function SubjectsPage() {
       setPastRev1Date("");
       setPastRev2Done(false);
       setPastRev2Date("");
+      setPastRev3Done(false);
+      setPastRev3Date("");
       setShowPastForm(false);
       fetchData();
     } catch (err: any) {
@@ -229,9 +234,11 @@ export default function SubjectsPage() {
   const learned = tasks.filter(t => t.task_type === "learning" && t.completed);
   const completedRev1 = tasks.filter(t => t.task_type === "revision_1" && t.completed);
   const completedRev2 = tasks.filter(t => t.task_type === "revision_2" && t.completed);
+  const completedRev3 = tasks.filter(t => t.task_type === "revision_3" && t.completed);
   
   const pendingRev1 = tasks.filter(t => t.task_type === "revision_1" && !t.completed);
   const pendingRev2 = tasks.filter(t => t.task_type === "revision_2" && !t.completed);
+  const pendingRev3 = tasks.filter(t => t.task_type === "revision_3" && !t.completed);
 
   const today = format(new Date(), "yyyy-MM-dd");
 
@@ -394,7 +401,7 @@ export default function SubjectsPage() {
               {pastDate && (
                 <div className="space-y-3 border-t border-border pt-3">
                   <p className="text-xs text-muted-foreground">Revision Status (based on {pastDate})</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <Checkbox
@@ -402,7 +409,7 @@ export default function SubjectsPage() {
                           onCheckedChange={v => setPastRev1Done(!!v)}
                         />
                         <Label className="text-xs">
-                          Rev 1 completed (due {format(addDays(new Date(pastDate + "T00:00:00"), 7), "MMM d, yyyy")})
+                          Rev 1 done (due {format(addDays(new Date(pastDate + "T00:00:00"), 7), "MMM d")})
                         </Label>
                       </div>
                       {pastRev1Done && (
@@ -423,7 +430,7 @@ export default function SubjectsPage() {
                           onCheckedChange={v => setPastRev2Done(!!v)}
                         />
                         <Label className="text-xs">
-                          Rev 2 completed (due {format(addDays(new Date(pastDate + "T00:00:00"), 17), "MMM d, yyyy")})
+                          Rev 2 done (due {format(addDays(new Date(pastDate + "T00:00:00"), 10), "MMM d")})
                         </Label>
                       </div>
                       {pastRev2Done && (
@@ -431,6 +438,27 @@ export default function SubjectsPage() {
                           type="date"
                           value={pastRev2Date}
                           onChange={e => setPastRev2Date(e.target.value)}
+                          max={today}
+                          className="ml-6"
+                          placeholder="Completion date"
+                        />
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={pastRev3Done}
+                          onCheckedChange={v => setPastRev3Done(!!v)}
+                        />
+                        <Label className="text-xs">
+                          Rev 3 done (due {format(addDays(new Date(pastDate + "T00:00:00"), 30), "MMM d")})
+                        </Label>
+                      </div>
+                      {pastRev3Done && (
+                        <Input
+                          type="date"
+                          value={pastRev3Date}
+                          onChange={e => setPastRev3Date(e.target.value)}
                           max={today}
                           className="ml-6"
                           placeholder="Completion date"
@@ -489,7 +517,7 @@ export default function SubjectsPage() {
             </CardContent>
           </Card>
 
-          {(completedRev1.length > 0 || completedRev2.length > 0) && (
+          {(completedRev1.length > 0 || completedRev2.length > 0 || completedRev3.length > 0) && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -497,18 +525,24 @@ export default function SubjectsPage() {
                   Completed Revisions
                 </CardTitle>
               </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
                   <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 1 ({completedRev1.length})</h3>
                   {completedRev1.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-2">No completed Revision 1 yet.</p>
+                    <p className="text-xs text-muted-foreground py-2">No completed Rev 1 yet.</p>
                   ) : completedRev1.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
                 </div>
                 <div className="space-y-2">
                   <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 2 ({completedRev2.length})</h3>
                   {completedRev2.length === 0 ? (
-                    <p className="text-xs text-muted-foreground py-2">No completed Revision 2 yet.</p>
+                    <p className="text-xs text-muted-foreground py-2">No completed Rev 2 yet.</p>
                   ) : completedRev2.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 3 ({completedRev3.length})</h3>
+                  {completedRev3.length === 0 ? (
+                    <p className="text-xs text-muted-foreground py-2">No completed Rev 3 yet.</p>
+                  ) : completedRev3.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
                 </div>
               </CardContent>
             </Card>
@@ -521,7 +555,7 @@ export default function SubjectsPage() {
                 Pending Revisions
               </CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="space-y-2">
                 <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 1 ({pendingRev1.length})</h3>
                 {pendingRev1.length === 0 ? (
@@ -533,6 +567,12 @@ export default function SubjectsPage() {
                 {pendingRev2.length === 0 ? (
                   <p className="text-xs text-muted-foreground py-2">All caught up! 🎉</p>
                 ) : pendingRev2.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-xs font-semibold text-muted-foreground border-b border-border pb-1 mb-3">Revision 3 ({pendingRev3.length})</h3>
+                {pendingRev3.length === 0 ? (
+                  <p className="text-xs text-muted-foreground py-2">All caught up! 🎉</p>
+                ) : pendingRev3.map(t => <TaskCard key={t.id} task={t} onToggle={handleToggle} onDelete={handleDelete} showDate />)}
               </div>
             </CardContent>
           </Card>

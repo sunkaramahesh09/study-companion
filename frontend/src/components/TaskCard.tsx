@@ -18,6 +18,16 @@ const TYPE_LABELS: Record<string, string> = {
   learning: "Learn",
   revision_1: "Rev 1",
   revision_2: "Rev 2",
+  revision_3: "Rev 3",
+  daily_task: "Daily",
+};
+
+const TYPE_BADGE_CLASSES: Record<string, string> = {
+  learning: "bg-primary/10 text-primary",
+  revision_1: "bg-primary/10 text-primary",
+  revision_2: "bg-primary/10 text-primary",
+  revision_3: "bg-primary/10 text-primary",
+  daily_task: "bg-teal-500/15 text-teal-600 dark:text-teal-400",
 };
 
 const DIFFICULTY_COLORS: Record<string, string> = {
@@ -61,13 +71,17 @@ export default function TaskCard({ task, onToggle, onDelete, showDate, disableSt
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
-          {topic?.subject || "—"}
-        </span>
-        <span className={cn("font-mono text-xs", DIFFICULTY_COLORS[topic?.difficulty || "medium"])}>
-          {topic?.difficulty}
-        </span>
-        <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary">
+        {task.task_type !== "daily_task" && (
+          <>
+            <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-secondary text-secondary-foreground">
+              {topic?.subject || "—"}
+            </span>
+            <span className={cn("font-mono text-xs", DIFFICULTY_COLORS[topic?.difficulty || "medium"])}>
+              {topic?.difficulty}
+            </span>
+          </>
+        )}
+        <span className={cn("font-mono text-xs px-1.5 py-0.5 rounded", TYPE_BADGE_CLASSES[task.task_type] || "bg-primary/10 text-primary")}>
           {TYPE_LABELS[task.task_type]}
         </span>
         {onDelete && (
